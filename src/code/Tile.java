@@ -1,12 +1,16 @@
 package code;
 /**
  * 
- * @author Sorcerer
+ * @author Sal
  *
  */
 public class Tile {
+	
 	String id;
 	String tleImg;
+	
+	int playerRegistryPos;
+	Player[] playerRegistry = new Player[4];
 	
 	//int x, y; //Use if needed for iterator
 	boolean hasPlayer = false;
@@ -45,6 +49,11 @@ public class Tile {
 		//When a tile is added to or removed from the board, the boolen isPlaced will change.
 	}
 	
+	public void rotateMany(int rotations) {
+		for (int i = 0; i < rotations; i++) {
+			rotate();
+		}
+	}
 	public void rotate() {
 		if (!isPlaced) {
 			boolean tempDir = hasUp;

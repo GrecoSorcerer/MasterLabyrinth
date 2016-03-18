@@ -2,11 +2,11 @@ package code;
 
 import java.util.Arrays;
 import java.util.Iterator;
+
 /**
  * 
  * @author Sorcerer
- *
- * @param <E>
+ * @param E
  * 
  */
 public class MasterLabyrinthBoard<E> {
@@ -14,7 +14,9 @@ public class MasterLabyrinthBoard<E> {
 	private Tile[][] _grid;
 	
 	int activePlayer; //TODO work on dis
-	
+	/**
+	 * @author Sal
+	 */
 	public MasterLabyrinthBoard(){
 		_grid = new Tile[7][7];
 		populate();
@@ -23,7 +25,9 @@ public class MasterLabyrinthBoard<E> {
 		System.out.println(_grid[1][0].tleImg + _grid[1][0].id);
 		System.out.println(_grid[0][0].tleImg + _grid[0][0].id);
 	}
-	
+	/**
+	 * @author Sal
+	 */
 	private void populate() {
 		/*
 		 * TODO:
@@ -31,10 +35,7 @@ public class MasterLabyrinthBoard<E> {
 		 * White code to randomly fill the board 
 		 * with tiles and player pieces.
 		 *  >>Define Class containing Tile Blueprints
-		 * 
 		 *
-		 * Create a way to generate tiles. 
-		 * (A Set and Pile Data Structure or Hashmap?)
 		 */
 		
 		//Generate a Debug "Tile"
@@ -44,7 +45,7 @@ public class MasterLabyrinthBoard<E> {
 	}
 	/**
 	 * 
-	 * @author Sorcerer
+	 * @author Sal
 	 *
 	 */
 	@SuppressWarnings("unused")
@@ -92,20 +93,23 @@ public class MasterLabyrinthBoard<E> {
 			if ( _grid[itx][ity].hasRight && _grid[itx + 1][ity].hasLeft 
 			&& !( ( itx + 1 ) == origins[posOrigins].x && ity == origins[posOrigins].y ) 
 			&& !( ( itx + 1 ) == visited[posVisited].x && ity == visited[posVisited].y ) ) {
-				addAnOrigin(itx++,ity);
+				addAnOrigin(itx++,ity);//Add a new origin/path starting point and move the iterator to that point
 				
 			}
 			if ( _grid[itx][ity].hasDown && _grid[itx][ity - 1].hasUp 
 			&& !( itx == origins[posOrigins].x && ( ity - 1 ) == origins[posOrigins].y )
 			&& !( itx == visited[posVisited].x && ( ity - 1 ) == visited[posVisited].y ) ) {
-				addAnOrigin(itx,ity--);
+				addAnOrigin(itx,ity--);//Add a new origin/path starting point and move the iterator to that point
 				
 			}
 			if ( _grid[itx][ity].hasLeft && _grid[itx - 1][ity].hasRight
 			&& !( ( itx - 1 ) == origins[posOrigins].x && ity == origins[posOrigins].y ) 
 			&& !( ( itx - 1 ) == visited[posVisited].x && ity == visited[posVisited].y ) ) {
-				addAnOrigin(itx--,ity);
+				addAnOrigin(itx--,ity);//Add a new origin/path starting point and move the iterator to that point
 				
+			}
+			else {
+				makeVisited();
 			}
 		}
 		
