@@ -8,11 +8,11 @@ import java.util.Random;
  */
 public class BuildSet {
 	
-	int setQnty = 3; // qnty is some number of tiles variations in the set. The current number will mostlikey change
-	int pileQnty;
+	private int setQnty = 3; // qnty is some number of tiles variations in the set. The current number will mostlikey change
+	private int pileQnty;
 	
-	Tile[] tileSet;
-	Tile[] tilePile;
+	private Tile[] tileSet;
+	private Tile[] tilePile;
 	/*
 	 * Only tiles that can be placed will be created here
 	 */
@@ -22,14 +22,13 @@ public class BuildSet {
 	 * @author Sal
 	 * 
 	 */
-	public void buildSet() {
+	private void buildSet() {
 		
 		tileSet = new Tile[setQnty];
 		
-		//tileSet[n] = new Tile("example_Tile01", bool hasUp, bool hasDown, bool hasLeft, bool hasRight, int qntyInSet);
-		tileSet[0] = new Tile("Turn", true, false, true, false, 15);//This is a temp int
-		tileSet[1] = new Tile("Streight", true, true, false, false, 15);//This is a temp int
-		tileSet[2] = new Tile("Intersection", true, true, false, true, 15);//This is a temp int
+		tileSet[0] = new Tile(0, 16);
+		tileSet[1] = new Tile(1, 12);
+		tileSet[2] = new Tile(2, 6);
 				
 		pileQnty =  takeSum();
 	}
@@ -66,7 +65,11 @@ public class BuildSet {
 		int count = 0;
 
 		//While loop will continue until all tiles in set are shuffled to the Pile
-		
+		/*
+		 *TODO
+		 *Make more randomization passes(Atleast 1-2)
+		 * 
+		 */
 		while (count < pileLength) {
 			typeIndex = r.nextInt(setLength);
 			if (tileSet[typeIndex].qntyInSet >= 1) {
@@ -76,11 +79,14 @@ public class BuildSet {
 			}
 		}
 		
+		//tileSet = null;
+		
+		/*
 		for(int i = 0; i < tilePile.length; i++ )
 			System.out.print("["+ i + "|" + tilePile[i].id + "]");
+		*/
 		
 		return tilePile;
-
 	}
 
 }

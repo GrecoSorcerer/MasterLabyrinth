@@ -10,9 +10,13 @@ public class Driver {
 		/*
 		 * This is a test Push and Commit2
 		 */
-		BuildSet p = new BuildSet();
-		p.getPile();
-
+		//BuildSet p = new BuildSet();
+		//p.getPile();
+		
+		@SuppressWarnings("unused")
+		MasterLabyrinthBoard<Tile> newGame = new MasterLabyrinthBoard<Tile>();
+		
+		
 	}
 
 }
