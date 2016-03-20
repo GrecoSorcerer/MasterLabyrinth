@@ -2,6 +2,8 @@ package code;
 
 import java.util.Iterator;
 
+import org.junit.Ignore;
+
 /**
  * 
  * @author Sorcerer
@@ -10,22 +12,28 @@ import java.util.Iterator;
  */
 public class MasterLabyrinthBoard<E> {
 	
-	 Tile[][] _grid;
+	Tile[][] _grid;
+	
+	Tile _extraTile;
+	String extraTile;
+
 	private Tile[] _pile;
 	IteratorTrace[] validMoves;
-			
-	int activePlayer; //TODO work on dis
+	
+	int players;
+	int activePlayer = 0; //TODO Add basic player functionality
 	/**
 	 * @author Sal
 	 */
-	public MasterLabyrinthBoard(){
-		long startTime = System.nanoTime()/1000000;
+	public MasterLabyrinthBoard(String[] args){
+		long startTime = System.currentTimeMillis();
+		players = args.length;
+		//buildPlayers();
 		_grid = new Tile[7][7];
 		populate();
 		playersTurn(0);
-		long endTime = System.nanoTime()/1000000;
+		long endTime = System.currentTimeMillis();
 		System.out.println("\n\nCompleted in: " + (endTime - startTime)+" ms");
-		//Debug Outputs
 	}
 	private boolean markValidMoves(int y, int x) {
 		for(int i = 0; i < validMoves.length; i++) {
@@ -37,11 +45,18 @@ public class MasterLabyrinthBoard<E> {
 		return false;
 	}
 	private void playersTurn(int p) {
-		MasterLabyrinthBoardIterator it = new MasterLabyrinthBoardIterator(0, 0);
+		MasterLabyrinthBoardIterator it = new MasterLabyrinthBoardIterator(4,3);
+		
 		validMoves = it.getPaths();
+		
 		String turnMap = "┘└┌┐";
 		String interMap = "┤┴├┬";
 		String strMap = "│─│─";
+		/*
+		String _turnMap = "╝╚╔╗";
+		String _interMap = "╣╩╠╦";
+		String _strMap = "║═║═";
+		*/
 		for(int i = 0; i < 7; i++) {
 			System.out.println();
 			for(int j = 0; j < 7; j++) {
@@ -55,23 +70,29 @@ public class MasterLabyrinthBoard<E> {
 					System.out.print(strMap.charAt(_grid[i][j].rotation));
 				}
 				else {
-					System.out.print("█");
+					/*
+					if (_grid[i][j].id == "Turn") {
+						System.out.print(_turnMap.charAt(_grid[i][j].rotation));
+					}
+					if (_grid[i][j].id == "Intersection") {	
+						System.out.print(_interMap.charAt(_grid[i][j].rotation));
+					}
+					if (_grid[i][j].id == "Straight") {	
+						System.out.print(_strMap.charAt(_grid[i][j].rotation));
+					}
+					*/
+					System.out.print("▒");
 				}
-				
 			}
 		}
 	}
 	/**
 	 * @author Sal
+	 * Adds tiles to board at the start of the game.
+	 * 
 	 */
 	private void populate() {
 		BuildSet p = new BuildSet();
-		
-		/*
-		 * TODO: Write code to randomly fill the board with
-		 * tiles and player pieces.
-		 *
-		 */
 		
 		//Fill Non-moving Tiles
 		//Add Fixed Turn Tiles
@@ -101,7 +122,6 @@ public class MasterLabyrinthBoard<E> {
 
 		int x = 0, y = 0;
 		for(int i = 0; i < (_pile.length - 1); i++) {
-
 			if ( y == 7 ) {
 				break;
 			}
@@ -123,9 +143,22 @@ public class MasterLabyrinthBoard<E> {
 			}
 		}
 		
-		String turnMap = "┘└┌┐";
-		String interMap = "┤┴├┬";
-		String strMap = "│─│─";
+		String turnMap = "╝╚╔╗";
+		String interMap = "╣╩╠╦";
+		String strMap = "║═║═";
+		
+		_extraTile = _pile[_pile.length - 1];
+		//This is just Some basic view information. It's gonna get moved when tile insertions are added
+		if (_extraTile.id == "Turn") {
+			System.out.print("► " + turnMap.charAt(_extraTile.rotation) + "\n");
+		}
+		if (_extraTile.id == "Intersection") {	
+			System.out.print("► " + interMap.charAt(_extraTile.rotation) + "\n");
+		}
+		if (_extraTile.id == "Straight") {	
+			System.out.print("► " + strMap.charAt(_extraTile.rotation) + "\n");
+		}
+		
 		for(int i = 0; i < 7; i++) {
 			System.out.println();
 			for(int j = 0; j < 7; j++) {
@@ -145,40 +178,47 @@ public class MasterLabyrinthBoard<E> {
 	
 	/**
 	 * 
-	 * @author Sal
-	 *
+	 * @author Salvatore
+	 * A reworked use of the Iterator interface used to
+	 * find all valid paths from a players location
+	 * 
+	 * This implementation was written in entirety by it's author.
+	 * 
+	 * @category Path Iterator
+	 * @version v1.0
 	 */
-	@SuppressWarnings("unused")
 	private class MasterLabyrinthBoardIterator implements Iterator<E> {
-		//TODO Add Iterator {Valid Moves Iterator, etc}
 		
-		int itx=0, ity=0; //Position of the Iterator
-		int playerX, playerY;
-		
+		int itx, ity; //Position of the Iterator
 		int posOrigins;
 		int posVisited;
 		
-		boolean visiting;
-		
 		IteratorTrace[] paths;
 		IteratorTrace[] visited;
-		
-		public MasterLabyrinthBoardIterator(int playerX, int playerY) {
+		public MasterLabyrinthBoardIterator() {
 			paths = new IteratorTrace[64];
 			visited = new IteratorTrace[64];
 			posOrigins = 0;
 			posVisited = 0;
 			addAnOrigin(0, 0);
-			visiting = false;
-			this.playerX = playerX;
-			this.playerY = playerY;
+			itx = 0;
+			ity = 0;
+		}
+		//TODO make use of this when the time comes to add players
+		public MasterLabyrinthBoardIterator(int playerX, int playerY) {
+			paths = new IteratorTrace[64];
+			visited = new IteratorTrace[64];
+			posOrigins = 0;
+			posVisited = 0;
+			itx = playerX;
+			ity = playerY;
+			addAnOrigin(itx, ity);
 		}
 		
 		private void addAnOrigin(int itx, int ity) {
-			// TODO Auto-generated method stub
 			//System.out.println("Added Path: (" + itx + ", " + ity + ")" );
 			paths[posOrigins++] = new IteratorTrace(itx, ity);
-			
+			//System.out.println(itx + "," + ity);
 			findPath();
 		}
 		
@@ -258,6 +298,7 @@ public class MasterLabyrinthBoard<E> {
 		}
 		
 		public IteratorTrace[] getPaths() {
+			
 			findPath();
 			
 			//makeVisited();
@@ -292,15 +333,15 @@ public class MasterLabyrinthBoard<E> {
 			return _grid[ity][itx].hasLeft && _grid[ity][itx - 1].hasRight;
 		}
 		
-		@Override
+		@Ignore
 		public boolean hasNext() {
+			//Functionality taken by methods: hasNextUp(), hasNextDown(), hasNextLeft(), and hasNextRight()
 			return false;
 		}
 
-		@Override
+		@Ignore
 		public E next() {
-			// TODO Define the Next Method
-			
+			//Functionality taken by getPaths() method
 			return null;
 		}	
 	}
