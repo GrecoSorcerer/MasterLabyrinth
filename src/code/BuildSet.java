@@ -8,14 +8,15 @@ import java.util.Random;
  */
 public class BuildSet {
 	
-	private int setQnty = 3; // qnty is some number of tiles variations in the set. The current number will mostlikey change
-	private int pileQnty;
+	private int setQnty = 34; // qnty is some number of tiles variations in the set. The current number will mostlikey change
 	
 	private Tile[] tileSet;
-	private Tile[] tilePile;
+	
 	/*
 	 * Only tiles that can be placed will be created here
 	 */
+	
+	int size = 0;
 	
 	/**
 	 * @author Andre
@@ -23,26 +24,39 @@ public class BuildSet {
 	 * 
 	 */
 	private void buildSet() {
-		
 		tileSet = new Tile[setQnty];
-		
-		tileSet[0] = new Tile(0, 16);
-		tileSet[1] = new Tile(1, 12);
-		tileSet[2] = new Tile(2, 6);
-				
-		pileQnty =  takeSum();
-	}
-	
-	/**
-	 * @author Sal
-	 * @return out sumOfTilesInSet
-	 */
-	private int takeSum() {
-		int out = 0;
-		for ( int i = 0; i < tileSet.length; i++ ) {
-			out += tileSet[i].qntyInSet;
+		int turn = 16;
+		int straight = 12;
+		int intersection = 6;
+		int count = 0;
+		while (count < tileSet.length) {
+			Random r = new Random();
+			int sel = r.nextInt(3);
+//			System.out.println(count +"]" + sel);
+//			System.out.println(turn + " " + straight + " " + intersection);
+			if (sel == 0 && turn >= 1) {
+				tileSet[count] = new Tile(0, 0);
+				tileSet[count].rotateMany(r.nextInt(8));
+//				System.out.println(tileSet[count].id);
+				turn--;
+				count++;
+			}
+			if (sel == 1 && straight >= 1) {
+				tileSet[count] = new Tile(1, 0);
+				tileSet[count].rotateMany(r.nextInt(8));
+//				System.out.println(tileSet[count].id);
+				straight--;
+				count++;
+			}
+			if (sel == 2 && intersection >= 1) {
+				tileSet[count] = new Tile(2, 0);
+				tileSet[count].rotateMany(r.nextInt(8));
+//				System.out.println(tileSet[count].id);
+				intersection--;	
+				count++;
+			}
 		}
-		return out;
+				
 	}
 	
 	/**
@@ -53,40 +67,7 @@ public class BuildSet {
 		
 		buildSet();
 		
-		tilePile = new Tile[pileQnty];
-
-		int pileLength = tilePile.length;
-		
-		Random r = new Random(); //initialize Random to r
-		int typeIndex; //initialize int for _pileSet random number 1-x,
-					   //where x is the number of tiles in set
-		int setLength = tileSet.length;
-
-		int count = 0;
-
-		//While loop will continue until all tiles in set are shuffled to the Pile
-		/*
-		 *TODO
-		 *Make more randomization passes(Atleast 1-2)
-		 * 
-		 */
-		while (count < pileLength) {
-			typeIndex = r.nextInt(setLength);
-			if (tileSet[typeIndex].qntyInSet >= 1) {
-				tilePile[count++] = tileSet[typeIndex];
-				tilePile[count - 1].rotateMany(r.nextInt(8));
-				tileSet[typeIndex].qntyInSet--;
-			}
-		}
-		
-		//tileSet = null;
-		
-		/*
-		for(int i = 0; i < tilePile.length; i++ )
-			System.out.print("["+ i + "|" + tilePile[i].id + "]");
-		*/
-		
-		return tilePile;
+		return tileSet;
 	}
 
 }

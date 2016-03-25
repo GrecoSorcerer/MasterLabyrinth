@@ -8,8 +8,8 @@ public class Tile {
 	
 	String id;
 	
-	int playerRegistryPos; //keeps a refrence of the next avalible space in the hasPlayer array
-	Player[] hasPlayer = new Player[4]; //Keeps a refrence of all players on this tile
+	int playerRegistryPos = 0; //keeps a refrence of the next avalible space in the hasPlayer array
+	public int[] hasPlayer = new int[4]; //Keeps a refrence of all players on this tile
 	
 	//int x, y; //Use if needed for iterator
 	//boolean hasPlayers = false;
@@ -45,7 +45,6 @@ public class Tile {
 	public Tile(int idNum, int qntyInSet) {
 		define(idNum, qntyInSet);
 	}
-	
 	private void define(int idNum, int qntyInSet) {
 		if (idNum == 0) {
 			hasUp = true;
@@ -73,6 +72,10 @@ public class Tile {
 	
 	public void setPlaced() {
 		//When a tile is added to or removed from the board, the boolen isPlaced will change.
+	}
+	
+	protected void addPlayer(int player) {
+		hasPlayer[playerRegistryPos++] = player;
 	}
 	
 	public void rotateMany(int rotations) {

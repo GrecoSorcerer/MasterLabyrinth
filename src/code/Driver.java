@@ -14,9 +14,7 @@ public class Driver {
 		//p.getPile();
 		
 		@SuppressWarnings("unused")
-		MasterLabyrinthBoard<Tile> newGame = new MasterLabyrinthBoard<Tile>(args);
-		
-		
+		MasterLabyrinthBoard<Tile> newGame = new MasterLabyrinthBoard<Tile>(args);	
 	}
 
 }

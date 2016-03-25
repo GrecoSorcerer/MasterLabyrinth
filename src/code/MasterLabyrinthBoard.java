@@ -1,13 +1,17 @@
 package code;
 
 import java.util.Iterator;
+import java.util.Random;
 
 import org.junit.Ignore;
 
 /**
  * 
- * @author Sorcerer
- * @param E
+ * @author Salvatore
+ *
+ * @param <E> useless?
+ * @version v1.5
+ * 
  * 
  */
 public class MasterLabyrinthBoard<E> {
@@ -20,72 +24,137 @@ public class MasterLabyrinthBoard<E> {
 	private Tile[] _pile;
 	IteratorTrace[] validMoves;
 	
+	private int maxTurn = 16;
+	int turns = 0;
+	
+	Player[] _players = new Player[4];
 	int players;
-	int activePlayer = 0; //TODO Add basic player functionality
+	int activePlayer = 0; 
+
+	@SuppressWarnings("unused")
+	private int[] moves; //This is used for debug movement of players each turn
+	
 	/**
-	 * @author Sal
+	 * @author Salvatore
+	 * @param preLoading a pre-made board-state
+	 * @param extraTile the extra tile for shifting the board
+	 * @param players the players
+	 * @param moves the moves being made
+	 * 
+	 * Sets players, loads a grid, and calls playersTurn()
+	 * 
+	 */
+	public MasterLabyrinthBoard(Tile[][] preLoading, Tile extraTile, String[] players, roundHistory[] moves) {
+		this.players = players.length;
+		_grid = preLoading;
+		playersTurn(0); // Defaulted to zero, because games
+	}
+	
+	/**
+	 * @author Salvatore
+	 * @param args used to load player and perhaps move data in the future
+	 * 
+	 * Makes players, builds grid, fills grid--populate()-- then calls playersTun
+	 * 
 	 */
 	public MasterLabyrinthBoard(String[] args){
 		long startTime = System.currentTimeMillis();
-		players = args.length;
-		//buildPlayers();
+		buildPlayers(args);
 		_grid = new Tile[7][7];
 		populate();
+		reloadVisuals();
 		playersTurn(0);
 		long endTime = System.currentTimeMillis();
 		System.out.println("\n\nCompleted in: " + (endTime - startTime)+" ms");
+		System.out.println(_players[0].name);
 	}
-	private boolean markValidMoves(int y, int x) {
-		for(int i = 0; i < validMoves.length; i++) {
-			if ( (validMoves[i] != null)
-			&&   (x == validMoves[i].x && y == validMoves[i].y)){
-				return true;
+	
+	private void buildPlayers(String[] args) {
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].contains("Name=") && players < 4){
+				String temp = args[i].replace("Name=", "");
+				System.out.println(temp + " joined the game!");
+				_players[i] = new Player(temp, players++);
+			}
+			if (args[i].contains("maxTurns=")) {
+				String temp = args[i].replace("maxTurns=", "");
+				maxTurn = Integer.parseInt(temp);
 			}
 		}
-		return false;
+		
+		if (players >= 1) {
+			_players[0].setPos(0, 0);
+		}
+		if (players >= 2) {
+			_players[1].setPos(6, 0);
+		}
+		if (players >= 3) {
+			_players[2].setPos(0, 6); 
+		}
+		if (players == 4) {
+			_players[3].setPos(6, 6);
+		}
 	}
+
+	/**
+	 * @author Salvatore
+	 * 
+	 * A debug/visual output method to print paths to console
+	 *
+	 */
+	private boolean markValidMoves(int y, int x) {
+		if (validMoves != null) {
+			for(int i = 0; i < validMoves.length; i++) {
+				if ( (validMoves[i] != null)
+				&&   (x == validMoves[i].x && y == validMoves[i].y)){
+					return true;
+				}
+			}
+		return false;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	/**
+	 * @author Salvatore
+	 * @param p player 0, 1, 2, or 3
+	 * 
+	 * This method handles all players turns
+	 * 
+	 * For the purpose of allowing the user story to run for Stage 1, 
+	 * I've implemented temporary maxTurns and turns variables
+	 * 
+	 */
 	private void playersTurn(int p) {
-		MasterLabyrinthBoardIterator it = new MasterLabyrinthBoardIterator(4,3);
+		Random r = new Random();
+		
+		String insert = ""; // USed as a random insert for userstory
+		insert += (char) ('A' + r.nextInt(11));
+		insert += r.nextInt(8);
+		//System.out.println("Inserting at: " + insert);
+		shiftBoard(insert);
+		
+		int x = _players[activePlayer].x, y = _players[activePlayer].y;
+		MasterLabyrinthBoardIterator it = new MasterLabyrinthBoardIterator(x,y);
 		
 		validMoves = it.getPaths();
 		
-		String turnMap = "┘└┌┐";
-		String interMap = "┤┴├┬";
-		String strMap = "│─│─";
-		/*
-		String _turnMap = "╝╚╔╗";
-		String _interMap = "╣╩╠╦";
-		String _strMap = "║═║═";
-		*/
-		for(int i = 0; i < 7; i++) {
-			System.out.println();
-			for(int j = 0; j < 7; j++) {
-				if (_grid[i][j].id == "Turn" && markValidMoves(i,j)) {
-					System.out.print(turnMap.charAt(_grid[i][j].rotation));
-				}
-				else if (_grid[i][j].id == "Intersection" && markValidMoves(i,j)) {	
-					System.out.print(interMap.charAt(_grid[i][j].rotation));
-				}
-				else if (_grid[i][j].id == "Straight" && markValidMoves(i,j)) {	
-					System.out.print(strMap.charAt(_grid[i][j].rotation));
-				}
-				else {
-					/*
-					if (_grid[i][j].id == "Turn") {
-						System.out.print(_turnMap.charAt(_grid[i][j].rotation));
-					}
-					if (_grid[i][j].id == "Intersection") {	
-						System.out.print(_interMap.charAt(_grid[i][j].rotation));
-					}
-					if (_grid[i][j].id == "Straight") {	
-						System.out.print(_strMap.charAt(_grid[i][j].rotation));
-					}
-					*/
-					System.out.print("▒");
-				}
-			}
+		int validMoveSel = r.nextInt(it.validSize);
+		_players[activePlayer].x = validMoves[validMoveSel].x;
+		_players[activePlayer].y = validMoves[validMoveSel].y;
+		System.out.println(_players[activePlayer].name + " to: " + "("+ _players[activePlayer].x +","+ _players[activePlayer].y +")");
+		reloadVisuals();
+		
+		while (turns <= maxTurn) { 
+			turns++;
+			if (activePlayer < players-1) { activePlayer++; } 
+			else if (activePlayer == players-1) { activePlayer = 0; }
+			playersTurn(activePlayer); 
 		}
 	}
+	
 	/**
 	 * @author Sal
 	 * Adds tiles to board at the start of the game.
@@ -120,6 +189,8 @@ public class MasterLabyrinthBoard<E> {
 		
 		_pile = p.getPile();
 
+		_extraTile = _pile[_pile.length - 1];
+		
 		int x = 0, y = 0;
 		for(int i = 0; i < (_pile.length - 1); i++) {
 			if ( y == 7 ) {
@@ -128,6 +199,7 @@ public class MasterLabyrinthBoard<E> {
 			if ( y % 2 == 0 ) {
 				_grid[y][x + 1] = _pile[i];
 				x += 2;
+				
 				if ( x == 6 ) {
 					x = 0;
 					y++;
@@ -142,12 +214,24 @@ public class MasterLabyrinthBoard<E> {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * @author Salvatore
+	 * 
+	 * prints board to console
+	 * 
+	 */
+	private void reloadVisuals() {
+		
+		System.out.println("\n");
+		
+		String playersMap = "♠♥♣♦";
 		
 		String turnMap = "╝╚╔╗";
 		String interMap = "╣╩╠╦";
 		String strMap = "║═║═";
 		
-		_extraTile = _pile[_pile.length - 1];
 		//This is just Some basic view information. It's gonna get moved when tile insertions are added
 		if (_extraTile.id == "Turn") {
 			System.out.print("► " + turnMap.charAt(_extraTile.rotation) + "\n");
@@ -173,9 +257,197 @@ public class MasterLabyrinthBoard<E> {
 				}
 			}
 		}
+		
+		System.out.println("\n");
+		
+		turnMap = "┘└┌┐";
+		interMap = "┤┴├┬";
+		strMap = "│─│─";
+		
+		String _turnMap = "╝╚╔╗";
+		String _interMap = "╣╩╠╦";
+		String _strMap = "║═║═";
+
+		for(int i = 0; i < 7; i++) {
+			System.out.println();
+			for(int j = 0; j < 7; j++) {
+				if (_players[activePlayer].x == j && _players[activePlayer].y == i) {
+					System.out.print(playersMap.charAt(activePlayer));
+				}
+				else {
+					if (_grid[i][j].id == "Turn" && markValidMoves(i,j)) {
+						System.out.print(turnMap.charAt(_grid[i][j].rotation));
+					}
+					else if (_grid[i][j].id == "Intersection" && markValidMoves(i,j)) {	
+						System.out.print(interMap.charAt(_grid[i][j].rotation));
+					}
+					else if (_grid[i][j].id == "Straight" && markValidMoves(i,j)) {	
+						System.out.print(strMap.charAt(_grid[i][j].rotation));
+					}
+					else {
+						
+						if (_grid[i][j].id == "Turn") {
+							System.out.print(_turnMap.charAt(_grid[i][j].rotation));
+						}
+						if (_grid[i][j].id == "Intersection") {	
+							System.out.print(_interMap.charAt(_grid[i][j].rotation));
+						}
+						if (_grid[i][j].id == "Straight") {	
+							System.out.print(_strMap.charAt(_grid[i][j].rotation));
+						}
+						
+						//System.out.print("▒");
+					}
+				}
+			}
+		}
 		System.out.println("\n");
 	}
 	
+	/**
+	 * @author Ryan
+	 * @author Salvatore
+	 * @param pos
+	 */
+	private void shiftBoard(String pos) {
+		String _pos = "" + pos.charAt(0);
+		String _rotate = "" + pos.charAt(1);
+//		int opposite = 0;
+		
+//		int setIncrement = 0;
+		int x = 0, y = 0;
+		
+		int rotate = Integer.parseInt(_rotate);
+		_extraTile.rotateMany(rotate);
+		
+		_pos.toUpperCase();
+		
+		Tile temp = null;
+		
+		//This Switch statement establishes parameters for the generic shifter loops
+		switch(_pos) {
+			
+			case "A":	x = 1;
+						temp = shiftTopDown(x, y);
+			break;
+			
+			case "B":	x = 3;
+						temp = shiftTopDown(x, y);			
+			break;
+				
+			case "C":	x = 5;
+					 	temp = shiftTopDown(x, y);
+			break;
+			case "I":	x = 1;
+						y = 6;
+						temp = shiftBottomUp(x, y);
+		  	break;
+		  	//Pattern continues
+		  	case "H":	x = 3;
+		  				y = 6;
+		  				temp = shiftBottomUp(x, y);
+			break;
+	
+			case "G":	x = 5;
+						y = 6;
+						temp = shiftBottomUp(x, y);
+			break;
+
+			case "L":	y = 1;
+						temp = shiftLeftRight(x, y);
+			break;
+			
+			case "K":	y = 3;
+						temp = shiftLeftRight(x, y);
+			break;
+				
+			case "J":	y = 5;
+						temp = shiftLeftRight(x, y);
+			break;
+			case "D":	y = 1;
+						x = 6;
+						temp = shiftRigtLeft(x, y);
+			break;
+			
+			case "E":	y = 3;
+						x = 6;
+						temp = shiftRigtLeft(x, y);
+			break;
+			
+			case "F":	y = 5;
+						x = 6;
+						temp = shiftRigtLeft(x, y);
+			break;
+		}
+		_grid[y][x] = _extraTile;
+		_extraTile = temp;
+	}
+	/**
+	 * @author Ryan
+	 * @author Salvatore
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	private Tile shiftRigtLeft(int x, int y) {
+		Tile temp = _grid[y][6];
+		//System.out.println("\nCopy:" + temp.id + ", " + temp.rotation);
+		for (int i = 5; i >= 0; i -= 1) {
+			//System.out.println("Move: " + (i+1) + "]" + _grid[i+1][x].id + ", " + _grid[i+1][x].rotation + " << " + (i) + "]" + _grid[i][x].id + ", " + _grid[i][x].rotation);
+			_grid[y][i+1] = _grid[y][i];
+		}
+		return temp;
+	}
+	/**
+	 * @author Ryan
+	 * @author Salvatore
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	private Tile shiftLeftRight(int x, int y) {
+		Tile temp = _grid[y][6];
+		//System.out.println("\nCopy:" + temp.id + ", " + temp.rotation);
+		for (int i = x-1; i >= 0; i -= -1) {
+			//System.out.println("Move: " + (i+1) + "]" + _grid[i+1][x].id + ", " + _grid[i+1][x].rotation + " << " + (i) + "]" + _grid[i][x].id + ", " + _grid[i][x].rotation);
+			_grid[y][i+1] = _grid[y][i];
+		}
+		return temp;
+		
+	}
+	/**
+	 * @author Ryan
+	 * @author Salvatore
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	private Tile shiftBottomUp(int x, int y) {
+		Tile temp = _grid[6][x];
+		//System.out.println("\nCopy:" + temp.id + ", " + temp.rotation);
+		for (int i = y-1; i >= 0; i += -1) {
+			//System.out.println("Move: " + (i+1) + "]" + _grid[i+1][x].id + ", " + _grid[i+1][x].rotation + " << " + (i) + "]" + _grid[i][x].id + ", " + _grid[i][x].rotation);
+			_grid[i+1][x] = _grid[i][x];
+		}
+		return temp;
+	}
+	/**
+	 * @author Ryan
+	 * @author Salvatore
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	private Tile shiftTopDown(int x, int y) {
+		Tile temp = _grid[6][x];
+		//System.out.println("\nCopy:" + temp.id + ", " + temp.rotation);
+		for (int i = 5; i >= 0; i -= 1) {
+			//System.out.println("Move: " + (i+1) + "]" + _grid[i+1][x].id + ", " + _grid[i+1][x].rotation + " << " + (i) + "]" + _grid[i][x].id + ", " + _grid[i][x].rotation);
+			_grid[i+1][x] = _grid[i][x];
+		}
+		return temp;
+	}
+
 	/**
 	 * 
 	 * @author Salvatore
@@ -192,6 +464,7 @@ public class MasterLabyrinthBoard<E> {
 		int itx, ity; //Position of the Iterator
 		int posOrigins;
 		int posVisited;
+		int validSize = 0;
 		
 		IteratorTrace[] paths;
 		IteratorTrace[] visited;
@@ -204,10 +477,15 @@ public class MasterLabyrinthBoard<E> {
 			itx = 0;
 			ity = 0;
 		}
-		//TODO make use of this when the time comes to add players
+		/**
+		 * 
+		 * @param playerX
+		 * @param playerY
+		 */
 		public MasterLabyrinthBoardIterator(int playerX, int playerY) {
-			paths = new IteratorTrace[64];
-			visited = new IteratorTrace[64];
+			System.out.println(_players[activePlayer].name+": (" + playerX + "," + playerY + ")");
+			paths = new IteratorTrace[49];
+			visited = new IteratorTrace[49];
 			posOrigins = 0;
 			posVisited = 0;
 			itx = playerX;
@@ -233,9 +511,8 @@ public class MasterLabyrinthBoard<E> {
 				this.itx = paths[posOrigins-1].x;
 				this.ity = paths[posOrigins-1].y;
 			}
-			
-			findPath();
-			
+			validSize++;
+			findPath();			
 		}
 
 		public void findPath() {
@@ -246,7 +523,6 @@ public class MasterLabyrinthBoard<E> {
 				//System.out.println("Up");
 				ity -= 1;
 				addAnOrigin(itx,ity); //Add a new origin/path starting point and move the iterator to that point
-				
 			}
 			else if ( hasNextRight() 
 			&& !( isPathed(1, 0) ) 
@@ -254,7 +530,6 @@ public class MasterLabyrinthBoard<E> {
 				//System.out.println("Right");
 				itx += 1;
 				addAnOrigin(itx,ity);//Add a new origin/path starting point and move the iterator to that point
-				
 			}
 			else if ( hasNextDown() 
 			&& !( isPathed(0, 1) )
@@ -262,7 +537,6 @@ public class MasterLabyrinthBoard<E> {
 				//System.out.println("Down");
 				ity += 1;
 				addAnOrigin(itx,ity);//Add a new origin/path starting point and move the iterator to that point
-				
 			}
 			else if ( hasNextLeft()
 			&& !( isPathed(-1,0) ) 
@@ -270,7 +544,6 @@ public class MasterLabyrinthBoard<E> {
 				//System.out.println("Left");
 				itx -= 1;
 				addAnOrigin(itx,ity);//Add a new origin/path starting point and move the iterator to that point
-				
 			}
 			if (posOrigins > 0) {
 				makeVisited();
@@ -302,7 +575,7 @@ public class MasterLabyrinthBoard<E> {
 			findPath();
 			
 			//makeVisited();
-			System.out.println("Valid Moves: " + posVisited);
+			System.out.println("=================================\n"+ "Turn:" + turns + "\n" + "Valid Moves: " + posVisited);
 			for(int i = 0; i < posVisited; i++) {
 				System.out.print("(" + visited[i].x + ", " + visited[i].y + ")");
 			}
