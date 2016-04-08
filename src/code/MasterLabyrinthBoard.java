@@ -144,7 +144,7 @@ public class MasterLabyrinthBoard<E> {
 		int validMoveSel = r.nextInt(it.validSize);
 		_players[activePlayer].x = validMoves[validMoveSel].x;
 		_players[activePlayer].y = validMoves[validMoveSel].y;
-		System.out.println(_players[activePlayer].name + " to: " + "("+ _players[activePlayer].x +","+ _players[activePlayer].y +")");
+		System.out.println("\n"+_players[activePlayer].name + " to: " + "("+ _players[activePlayer].x +","+ _players[activePlayer].y +")");
 		reloadVisuals();
 		
 		while (turns <= maxTurn) { 
@@ -320,6 +320,7 @@ public class MasterLabyrinthBoard<E> {
 		int rotate = Integer.parseInt(_rotate);
 		_extraTile.rotateMany(rotate);
 		
+		System.out.println(_players[activePlayer].name + " iserted their tile at " + _pos + " rotating it " + rotate + " times Clock-wise.");
 		_pos.toUpperCase();
 		
 		Tile temp = null;
