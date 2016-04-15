@@ -2,6 +2,7 @@ package code;
 
 import java.util.Iterator;
 import java.util.Random;
+import java.util.Scanner;
 
 import org.junit.Ignore;
 
@@ -22,12 +23,14 @@ public class MasterLabyrinthBoard<E> {
 	String extraTile;
 
 	private Tile[] _pile;
+	private Token[] _tokens;
 	IteratorTrace[] validMoves;
 	
 	private int maxTurn = 16;
 	int turns = 0;
 	
-	Player[] _players = new Player[4];
+	Player[] _players;
+	
 	int players;
 	int activePlayer = 0; 
 
@@ -57,19 +60,102 @@ public class MasterLabyrinthBoard<E> {
 	 * Makes players, builds grid, fills grid--populate()-- then calls playersTun
 	 * 
 	 */
-	public MasterLabyrinthBoard(String[] args){
+	public MasterLabyrinthBoard(){
 		long startTime = System.currentTimeMillis();
-		buildPlayers(args);
 		_grid = new Tile[7][7];
 		populate();
-		reloadVisuals();
-		playersTurn(0);
+		establishPlayers();
+		/*
+		 * Soon to be depricated
+		 */
+//		reloadVisuals();
+//		playersTurn(0);
 		long endTime = System.currentTimeMillis();
 		System.out.println("\n\nCompleted in: " + (endTime - startTime)+" ms");
-		System.out.println(_players[0].name);
+//		System.out.println(_players[0].name);
 	}
 	
-	private void buildPlayers(String[] args) {
+	/**
+	 * 
+	 * @author Andre
+	 * 
+	 */
+	public void establishPlayers() {
+    	
+    	Scanner in = new Scanner(System.in);
+		
+		int totalPlayers = 0;
+		boolean done = false;
+		
+		Player[] unsortedPlayers = new Player[4];
+		
+		while(totalPlayers < 4 || !(done)) {//Start
+		
+			String name; // local variable for player name
+			int age; // local variable  for player age
+			System.out.println("asdaf");
+			//First Inner While loop, used to take a name as an input and ensure it's valid
+			while (true) {
+				while (true) {
+					System.out.println("How mant Players");
+					try {
+						totalPlayers = in.nextInt();
+						if (totalPlayers > 4) {
+							continue;
+						}
+					}
+					catch (NumberFormatException e) {
+						System.out.println("Thats not a number");
+						continue;
+					}
+					break;		
+				}
+				_players = new Player[totalPlayers];
+				for (int i = 0; i < totalPlayers; i++) {
+					while (true) {
+						System.out.println("What is your Name? ");
+						name = in.next();
+						if (name == "" || name == null) {
+							System.out.println("C'mon, you've got to have a name...");
+							continue;
+						}
+						else {
+							break;
+						}
+					}
+					
+					//Second Inner While loop, used to take an age as an input and ensure it's valid
+					while (true) {
+						System.out.println("What is your Age? ");
+						try {
+							age = in.nextInt();
+						}
+						catch (NumberFormatException e) {
+							System.out.println("Your input was not a valid Age!?");
+							continue;
+						}
+						System.out.println("Break");
+						break;
+					}
+					
+					_players[i] = new Player(name, age); //Adds a new Player object to an array of unsortedPlayers then increments up by 1 then allows another player to be add
+					
+				}
+				System.out.println("Break");
+				break;
+			}
+			System.out.println("Break");
+			break;
+		}
+		buildPlayers();
+		
+	}
+	
+	private void buildPlayers() {
+		/*
+		 * One could say this is deprecated code. It was used to create a player from args
+		 * 
+		System.out.println(args[1]);
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].contains("Name=") && players < 4){
 				String temp = args[i].replace("Name=", "");
@@ -81,18 +167,23 @@ public class MasterLabyrinthBoard<E> {
 				maxTurn = Integer.parseInt(temp);
 			}
 		}
-		
-		if (players >= 1) {
+		*/
+		System.out.println(_grid[0][0].hasPlayerOne + "asdsfhksfj");
+		if (_players.length >= 1) {
 			_players[0].setPos(0, 0);
+			_grid[0][0].hasPlayerOne = true;
 		}
-		if (players >= 2) {
+		if (_players.length >= 2) {
 			_players[1].setPos(6, 0);
+			_grid[0][6].hasPlayerTwo = true;
 		}
-		if (players >= 3) {
+		if (_players.length >= 3) {
 			_players[2].setPos(0, 6); 
+			_grid[6][0].hasPlayerThree =true;
 		}
-		if (players == 4) {
+		if (_players.length == 4) {
 			_players[3].setPos(6, 6);
+			_grid[6][6].hasPlayerFour = true;
 		}
 	}
 
@@ -134,7 +225,10 @@ public class MasterLabyrinthBoard<E> {
 		insert += (char) ('A' + r.nextInt(11));
 		insert += r.nextInt(8);
 		//System.out.println("Inserting at: " + insert);
-		shiftBoard(insert);
+		/*
+		 * TODO:
+		 */
+//		shiftBoard(insert);
 		
 		int x = _players[activePlayer].x, y = _players[activePlayer].y;
 		MasterLabyrinthBoardIterator it = new MasterLabyrinthBoardIterator(x,y);
@@ -160,6 +254,14 @@ public class MasterLabyrinthBoard<E> {
 	 * Adds tiles to board at the start of the game.
 	 * 
 	 */
+	public boolean makeMove(int x, int y) {
+		if (markValidMoves(y, x)) {
+			_players[activePlayer].x = x;
+			_players[activePlayer].y = y;
+			return true;
+		}
+		return false;
+	}
 	private void populate() {
 		BuildSet p = new BuildSet();
 		
@@ -188,11 +290,12 @@ public class MasterLabyrinthBoard<E> {
 		_grid[6][4] = new Tile(2, null, 1);
 		
 		_pile = p.getPile();
-
+		
 		_extraTile = _pile[_pile.length - 1];
 		
 		int x = 0, y = 0;
 		for(int i = 0; i < (_pile.length - 1); i++) {
+			
 			if ( y == 7 ) {
 				break;
 			}
@@ -214,6 +317,31 @@ public class MasterLabyrinthBoard<E> {
 				}
 			}
 		}
+		
+		boolean tokenPlacement = true;
+		Random r = new Random();
+		int index = 0;
+		while (tokenPlacement) {
+			
+			Token[] storage = p.getTokens();
+						
+			int i = r.nextInt(49);
+			System.out.println(_grid[i/7][i%7].hasToken);
+			
+			System.out.println(i + "," + index);
+			if (!(_grid[i/7][i%7].hasToken)) {
+				System.out.println("asdf");
+				_grid[i/7][i%7].placeToken(storage[index++]);
+			}
+			else {
+				continue;
+			}
+			if ( index == storage.length) {
+				break;
+			}
+			
+		}
+		
 	}
 	
 	/**
@@ -466,9 +594,12 @@ public class MasterLabyrinthBoard<E> {
 		int posOrigins;
 		int posVisited;
 		int validSize = 0;
+		int tokensPos = 0;
+		
 		
 		IteratorTrace[] paths;
 		IteratorTrace[] visited;
+		@SuppressWarnings("unused")
 		public MasterLabyrinthBoardIterator() {
 			paths = new IteratorTrace[64];
 			visited = new IteratorTrace[64];

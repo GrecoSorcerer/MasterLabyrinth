@@ -8,9 +8,10 @@ public class Tile {
 	
 	String id;
 	
-	int playerRegistryPos = 0; //keeps a refrence of the next avalible space in the hasPlayer array
-	public int[] hasPlayer = new int[4]; //Keeps a refrence of all players on this tile
-	
+	boolean hasPlayerOne = false;
+	boolean hasPlayerTwo = false;
+	boolean hasPlayerThree = false;
+	boolean hasPlayerFour = false;
 	//int x, y; //Use if needed for iterator
 	//boolean hasPlayers = false;
 	int rotation = 0;
@@ -21,7 +22,10 @@ public class Tile {
 	boolean hasRight;
 	
 	int qntyInSet;
-
+	
+	boolean hasToken = false;
+	Token storage; //Holds a Token Object
+	
 	/*
 	 * Note, that placement may or may not be handled outside, 
 	 * and the default of this value is subject to change
@@ -70,20 +74,59 @@ public class Tile {
 		this.qntyInSet = qntyInSet;
 	}
 	
+	public String getTexture(){
+		return id + rotation + ".png";
+	}
+	
 	public void setPlaced() {
 		//When a tile is added to or removed from the board, the boolen isPlaced will change.
 	}
+	protected void addPlayer(int p) {
+		if (p == 1) {
+			hasPlayerOne = true;
+		}
+		else if (p == 2) {
+			hasPlayerTwo = true;
+		}
+		else if (p == 3) {
+			hasPlayerThree = true;
+		}
+		else if (p == 4) {
+			hasPlayerFour = true;
+		}
+	}
 	
-	protected void addPlayer(int player) {
-		hasPlayer[playerRegistryPos++] = player;
+	protected void removePlayer(int p) {
+		if (p == 1) {
+			hasPlayerOne = false;
+		}
+		else if (p == 2) {
+			hasPlayerTwo = false;
+		}
+		else if (p == 3) {
+			hasPlayerThree = false;
+		}
+		else if (p == 4) {
+			hasPlayerFour = false;
+		}
+	}
+	
+	public void placeToken(Token t) {
+		storage = t;
+		hasToken = true;
+	}
+	
+	public void takeToken() {
+		
 	}
 	
 	public void rotateMany(int rotations) {
 		for (int i = 0; i < rotations; i++) {
-			rotate();
+			rotateRight();
 		}
 	}
-	public void rotate() {
+	
+	public void rotateRight() {
 		if (!isPlaced) {
 			boolean tempDir = hasUp;
 			hasUp = hasLeft;
@@ -99,5 +142,23 @@ public class Tile {
 			//Add code to project rotated image when building GUIs
 		}
 	}
-
+	public void rotateLeft() {
+		if (!isPlaced) {
+			boolean tempDir = hasUp;
+			hasUp = hasRight;
+			hasRight = hasDown;
+			hasDown = hasLeft;
+			hasLeft = tempDir;
+			if (rotation > 0 && rotation <=3) {
+				rotation--;
+			} else {
+				rotation = 3;
+			}
+			//rotateImage(this.Tile)
+			//Add code to project rotated image when building GUIs
+		}
+	}
+	public boolean hasToken() {
+		return storage != null;
+	}
 }
